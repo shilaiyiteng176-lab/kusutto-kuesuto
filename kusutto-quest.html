@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#2c1f0e"/>
+<title>クスッとクエスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;background:#2c1f0e;}
+#kq{max-width:430px;margin:0 auto;font-family:'Noto Serif JP',-apple-system,serif;background:#f5f0e8;min-height:100vh;color:#2c1f0e;}
+.screen{display:none;}.screen.active{display:block;}
+.header{background:#2c1f0e;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.header-title{color:#f5e6c8;font-size:18px;font-weight:700;letter-spacing:1px;}
+.header-sub{color:#a08050;font-size:10px;margin-top:2px;}
+.lv-pill{background:#8b4513;color:#f5e6c8;font-size:11px;font-weight:700;padding:4px 12px;border-radius:99px;border:1px solid #c8a878;white-space:nowrap;}
+.content{padding:14px 14px 32px;}
+.parchment-card{background:#faf6ee;border:1.5px solid #c8a878;border-radius:4px;padding:14px;margin-bottom:12px;position:relative;}
+.parchment-card::before{content:'';position:absolute;top:3px;left:3px;right:3px;bottom:3px;border:0.5px solid #d4b896;border-radius:2px;pointer-events:none;}
+.section-title{font-size:10px;font-weight:700;color:#8b4513;letter-spacing:0.15em;margin-bottom:10px;}
+.inkbox{width:100%;padding:10px 12px;font-size:14px;border:1.5px solid #c8a878;border-radius:4px;background:#fffdf7;color:#2c1f0e;resize:none;font-family:'Noto Serif JP',serif;line-height:1.7;outline:none;}
+.inkbox:focus{border-color:#8b4513;}
+.char-count{font-size:10px;color:#a08050;text-align:right;margin-top:4px;}
+.seal-btn{display:block;width:100%;padding:13px;font-size:14px;font-weight:700;border-radius:4px;border:2px solid #8b4513;background:#8b4513;color:#f5e6c8;cursor:pointer;font-family:'Noto Serif JP',serif;letter-spacing:1px;transition:all 0.15s;margin-top:10px;}
+.seal-btn:hover{background:#6b3410;}
+.seal-btn:active{transform:scale(0.98);}
+.seal-btn:disabled{background:#c8a878;border-color:#c8a878;cursor:not-allowed;}
+.ghost-btn{display:block;width:100%;padding:10px;font-size:13px;border-radius:4px;border:1.5px solid #c8a878;background:transparent;color:#8b4513;cursor:pointer;font-family:'Noto Serif JP',serif;transition:all 0.15s;margin-top:8px;}
+.ghost-btn:hover{background:#f0e8d8;}
+.stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px;}
+.stat-box{background:#faf6ee;border:1px solid #c8a878;border-radius:4px;padding:10px 12px;}
+.stat-lbl{font-size:10px;color:#a08050;margin-bottom:2px;}
+.stat-val{font-size:22px;font-weight:700;color:#2c1f0e;}
+.stat-sub{font-size:10px;color:#8b4513;}
+.xp-track{height:6px;background:#e8e0d0;border-radius:3px;overflow:hidden;margin:6px 0 3px;border:0.5px solid #c8a878;}
+.xp-fill{height:100%;background:#8b4513;transition:width 0.6s;}
+.nav-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:10px 14px;background:#2c1f0e;}
+.nav-btn{padding:9px 4px;font-size:11px;font-weight:700;border-radius:3px;border:1px solid #6b4c2a;background:transparent;color:#a08050;cursor:pointer;font-family:'Noto Serif JP',serif;letter-spacing:0.5px;transition:all 0.15s;}
+.nav-btn.active{background:#8b4513;color:#f5e6c8;border-color:#f5e6c8;}
+.result-card{background:#faf6ee;border:2px solid #8b4513;border-radius:4px;padding:16px;margin-bottom:12px;position:relative;}
+.result-card::after{content:'';position:absolute;top:4px;left:4px;right:4px;bottom:4px;border:0.5px solid #c8a878;border-radius:2px;pointer-events:none;}
+.char-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #d4b896;}
+.char-icon{font-size:30px;}
+.char-badge{font-size:10px;font-weight:700;color:#8b4513;background:#f0e8d8;padding:2px 8px;border-radius:99px;border:1px solid #c8a878;}
+.char-comment{font-size:13px;color:#2c1f0e;line-height:1.7;font-style:italic;padding:10px;background:#fffdf7;border-radius:3px;border:0.5px solid #d4b896;margin-bottom:10px;}
+.score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+.score-box{background:#f0e8d8;border-radius:3px;padding:8px;}
+.score-lbl{font-size:10px;color:#8b4513;font-weight:700;margin-bottom:4px;}
+.score-bar-track{height:4px;background:#d4b896;border-radius:2px;overflow:hidden;}
+.score-bar{height:100%;border-radius:2px;transition:width 0.8s;}
+.score-num{font-size:16px;font-weight:700;color:#2c1f0e;margin-top:3px;}
+.total-score-area{text-align:center;padding:12px;background:#f0e8d8;border-radius:3px;border:1px solid #c8a878;margin-bottom:10px;}
+.reward-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.reward-box{background:#f0e8d8;border-radius:3px;padding:10px;text-align:center;border:0.5px solid #c8a878;}
+.generated-card{background:#faf6ee;border:2px solid #2c1f0e;border-radius:4px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
+.generated-card::before{content:'✦';position:absolute;top:8px;right:12px;font-size:20px;color:#c8a878;opacity:0.4;}
+.card-type-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid;margin-bottom:8px;}
+.type-item{background:#f0e8d8;color:#633806;border-color:#EF9F27;}
+.type-monster{background:#fcebeb;color:#791F1F;border-color:#E24B4A;}
+.type-title{background:#eeedfe;color:#26215C;border-color:#7F77DD;}
+.type-card{background:#e1f5ee;color:#04342C;border-color:#1D9E75;}
+.generated-name{font-size:20px;font-weight:700;color:#2c1f0e;margin-bottom:6px;}
+.generated-desc{font-size:12px;color:#6b4c2a;line-height:1.6;margin-bottom:10px;}
+.generated-stats{display:flex;gap:8px;flex-wrap:wrap;}
+.stat-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f0e8d8;color:#8b4513;border:0.5px solid #c8a878;}
+.save-btn{display:block;width:100%;padding:10px;font-size:12px;font-weight:700;border-radius:4px;border:1.5px solid #2c1f0e;background:transparent;color:#2c1f0e;cursor:pointer;font-family:'Noto Serif JP',serif;margin-top:10px;letter-spacing:0.5px;transition:all 0.15s;}
+.save-btn:hover{background:#f0e8d8;}
+.loading-parchment{text-align:center;padding:28px 16px;}
+.loading-icon{font-size:40px;margin-bottom:10px;animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.loading-txt{font-size:13px;color:#8b4513;font-style:italic;}
+.dungeon-card{background:#faf6ee;border:1.5px solid #c8a878;border-radius:4px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.enemy-face{font-size:34px;width:46px;text-align:center;}
+.enemy-info{flex:1;}
+.enemy-name{font-size:13px;font-weight:700;color:#2c1f0e;}
+.enemy-hp-track{height:5px;background:#e8e0d0;border-radius:2px;overflow:hidden;margin-top:5px;border:0.5px solid #c8a878;}
+.enemy-hp-bar{height:100%;background:#8b4513;border-radius:2px;transition:width 0.6s;}
+.battle-log{font-size:12px;color:#6b4c2a;background:#fffdf7;border:1px solid #d4b896;border-radius:4px;padding:12px;margin:10px 0;line-height:1.9;white-space:pre-wrap;}
+.item-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#faf6ee;border:1px solid #d4b896;border-radius:4px;margin-bottom:6px;}
+.buy-btn{padding:5px 12px;font-size:11px;font-weight:700;border-radius:99px;border:1.5px solid #8b4513;background:transparent;color:#8b4513;cursor:pointer;font-family:'Noto Serif JP',serif;transition:all 0.15s;}
+.buy-btn:hover{background:#f0e8d8;}
+.buy-btn.owned{background:#e1f5ee;color:#04342C;border-color:#1D9E75;cursor:default;}
+.history-item{background:#faf6ee;border:1px solid #c8a878;border-radius:4px;padding:10px 12px;margin-bottom:8px;}
+.history-text{font-size:12px;color:#6b4c2a;line-height:1.5;margin-bottom:6px;font-style:italic;}
+.history-footer{display:flex;justify-content:space-between;align-items:center;}
+</style>
+</head>
+<body>
+<div id="kq">
+
+<div class="header">
+  <div>
+    <div class="header-title">クスッとクエスト</div>
+    <div class="header-sub">日常の笑いが、冒険になる</div>
+  </div>
+  <span class="lv-pill" id="lv-badge">Lv1 見習い</span>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn active" onclick="showTab('post')" id="tab-post">📝 投稿</button>
+  <button class="nav-btn" onclick="showTab('dungeon')" id="tab-dungeon">⚔️ 冒険</button>
+  <button class="nav-btn" onclick="showTab('shop')" id="tab-shop">🛒 商店</button>
+</div>
+
+<div class="content">
+
+<div id="view-post" class="screen active">
+  <div class="stat-grid">
+    <div class="stat-box">
+      <div class="stat-lbl">⚔️ レベル</div>
+      <div class="stat-val" id="disp-lv">1</div>
+      <div class="stat-sub" id="disp-lvname">見習い冒険者</div>
+      <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
+      <div class="stat-sub" id="disp-xp">EXP 0 / 100</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-lbl">💰 ゴールド</div>
+      <div class="stat-val" id="disp-gold">0</div>
+      <div class="stat-sub">G</div>
+    </div>
+  </div>
+
+  <div id="phase-input">
+    <div class="section-title">本日の出来事を記せ</div>
+    <div class="parchment-card">
+      <div style="font-size:12px;color:#a08050;margin-bottom:10px;line-height:1.6;">今日あった面白いこと・小さな失敗・あるある・笑った出来事を書いてください</div>
+      <textarea class="inkbox" id="post-input" rows="5" placeholder="例：スマホを探しながらスマホでライトをつけていた&#10;&#10;例：コンビニで会計を終えてから財布を探していた&#10;&#10;例：模型を直そうとして壊した"></textarea>
+      <div class="char-count" id="char-count">0文字</div>
+      <button class="seal-btn" id="post-btn" onclick="submitPost()">✦ 評価してもらう ✦</button>
+    </div>
+  </div>
+
+  <div id="phase-loading" style="display:none;">
+    <div class="parchment-card">
+      <div class="loading-parchment">
+        <div class="loading-icon" id="loading-icon">🧙</div>
+        <div class="loading-txt" id="loading-txt">賢者が出来事を分析中...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="phase-result" style="display:none;">
+    <div class="result-card">
+      <div class="char-header">
+        <div class="char-icon" id="char-icon"></div>
+        <div>
+          <div class="char-badge" id="char-badge"></div>
+          <div style="font-size:11px;color:#a08050;margin-top:3px;">今回の評価者</div>
+        </div>
+      </div>
+      <div class="char-comment" id="char-comment"></div>
+      <div class="score-grid">
+        <div class="score-box"><div class="score-lbl">共感度</div><div class="score-bar-track"><div class="score-bar" id="bar-e" style="width:0%;background:#7F77DD;"></div></div><div class="score-num" id="num-e">-</div></div>
+        <div class="score-box"><div class="score-lbl">意外性</div><div class="score-bar-track"><div class="score-bar" id="bar-s" style="width:0%;background:#EF9F27;"></div></div><div class="score-num" id="num-s">-</div></div>
+        <div class="score-box"><div class="score-lbl">情景性</div><div class="score-bar-track"><div class="score-bar" id="bar-i" style="width:0%;background:#1D9E75;"></div></div><div class="score-num" id="num-i">-</div></div>
+        <div class="score-box"><div class="score-lbl">面白さ</div><div class="score-bar-track"><div class="score-bar" id="bar-f" style="width:0%;background:#D4537E;"></div></div><div class="score-num" id="num-f">-</div></div>
+      </div>
+      <div class="total-score-area">
+        <div style="font-size:11px;color:#a08050;margin-bottom:2px;">総合スコア</div>
+        <div style="font-size:40px;font-weight:700;color:#2c1f0e;" id="total-score">-</div>
+        <div style="font-size:11px;color:#8b4513;margin-top:2px;" id="score-rank"></div>
+      </div>
+      <div class="reward-row">
+        <div class="reward-box"><div style="font-size:22px;">⭐</div><div style="font-size:18px;font-weight:700;" id="r-xp">+0</div><div style="font-size:10px;color:#a08050;">経験値</div></div>
+        <div class="reward-box"><div style="font-size:22px;">💰</div><div style="font-size:18px;font-weight:700;" id="r-gold">+0</div><div style="font-size:10px;color:#a08050;">ゴールド</div></div>
+      </div>
+    </div>
+
+    <div class="generated-card" id="generated-card">
+      <div class="card-type-badge" id="gen-type-badge"></div>
+      <div class="generated-name" id="gen-name"></div>
+      <div class="generated-desc" id="gen-desc"></div>
+      <div class="generated-stats" id="gen-stats"></div>
+      <button class="save-btn" onclick="saveCard()">📜 カードを画像として保存する</button>
+    </div>
+
+    <button class="seal-btn" onclick="resetPost()">✦ 次の出来事を記す ✦</button>
+    <button class="ghost-btn" onclick="showTab('dungeon')">⚔️ ダンジョンへ行く</button>
+  </div>
+</div>
+
+<div id="view-dungeon" class="screen">
+  <div class="section-title">ダンジョン探索</div>
+  <div class="parchment-card">
+    <div style="font-size:12px;color:#6b4c2a;margin-bottom:12px;line-height:1.6;">笑いのエネルギーを使って敵を討て。レベルが上がるほど強い敵に挑める。</div>
+    <div id="enemy-list"></div>
+    <button class="seal-btn" id="battle-btn" onclick="startBattle()">⚔️ 戦闘開始！</button>
+    <div class="battle-log" id="battle-log" style="display:none;"></div>
+    <button class="ghost-btn" id="again-btn" onclick="resetBattle()" style="display:none;">もう一度戦う</button>
+  </div>
+</div>
+
+<div id="view-shop" class="screen">
+  <div class="section-title">行商人の店</div>
+  <div class="parchment-card">
+    <div style="font-size:12px;color:#6b4c2a;margin-bottom:12px;">ゴールドと引き換えに武具を揃えよ。装備が強いほどダンジョンで有利になる。</div>
+    <div id="shop-list"></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const LEVELS=[
+  {lv:1,name:'見習い冒険者',xp:100},
+  {lv:2,name:'駆け出し芸人',xp:250},
+  {lv:3,name:'笑いの旅人',xp:500},
+  {lv:4,name:'クスリスト',xp:900},
+  {lv:5,name:'爆笑騎士',xp:1500},
+  {lv:6,name:'喜劇魔導士',xp:2500},
+  {lv:7,name:'笑神候補',xp:4000},
+  {lv:8,name:'伝説のボケ師',xp:6000},
+  {lv:9,name:'笑撃王',xp:9000},
+  {lv:10,name:'笑いの勇者',xp:99999},
+];
+
+const CHARS=[
+  {icon:'👑',name:'王様',style:'皮肉と威厳のある老王。辛口だが時折笑いが漏れる。褒める時も上から目線。'},
+  {icon:'😈',name:'魔王',style:'感情を表に出さないクールな魔王。笑わせると渋々認める。ツンデレ気味。'},
+  {icon:'🎵',name:'吟遊詩人',style:'詩的で感受性が高い旅人。情景描写に厳しい。オーバーリアクション気味。'},
+  {icon:'🦉',name:'賢者フクロウ',style:'知識はあるが天邪鬼な老賢者。ツッコミが鋭い。分析が細かすぎる。'},
+];
+
+const ENEMIES=[
+  {face:'🟢',name:'無表情スライム',hp:40,power:8,desc:'笑いの気配に全く反応しない'},
+  {face:'👺',name:'真顔ゴブリン',hp:80,power:15,desc:'どんな笑い話も3秒で否定する'},
+  {face:'💼',name:'会議オーク',hp:130,power:25,desc:'「それ今関係ある？」が口癖'},
+  {face:'🧊',name:'シラケ騎士',hp:200,power:38,desc:'伝説の盛り下げ師'},
+  {face:'😤',name:'退屈の魔将',hp:350,power:55,desc:'魔王の右腕。あくびが武器'},
+];
+
+const ITEMS=[
+  {id:'stick',icon:'🪵',name:'木の棒',desc:'旅の始まりの武器',price:10,atk:3},
+  {id:'sword',icon:'🗡️',name:'ツッコミの剣',desc:'鋭いツッコミで斬る ATK+12',price:80,atk:12},
+  {id:'shield',icon:'🛡️',name:'あるあるの盾',desc:'共感で攻撃を受け流す',price:60,atk:0},
+  {id:'staff',icon:'✨',name:'爆笑の杖',desc:'笑いのエネルギー解放 ATK+20',price:150,atk:20},
+  {id:'mic',icon:'🎤',name:'伝説のマイク',desc:'全ての敵が凍りつく ATK+35',price:300,atk:35},
+  {id:'book',icon:'📖',name:'神のボケ辞典',desc:'無限のボケが宿る ATK+55',price:500,atk:55},
+];
+
+const GEN_TYPES=['item','monster','title','card'];
+
+let G={xp:0,gold:0,items:[],history:[]};
+
+function load(){try{const s=localStorage.getItem('kq2_save');if(s)G=JSON.parse(s);}catch(e){}}
+function save(){try{localStorage.setItem('kq2_save',JSON.stringify(G));}catch(e){}}
+
+function getLv(){let c=LEVELS[0];for(const l of LEVELS){if(G.xp>=l.xp)c=l;else break;}return c;}
+function getNextXp(){const c=getLv();const n=LEVELS.find(l=>l.lv===c.lv+1);return n?n.xp:99999;}
+function getAtk(){let a=5;G.items.forEach(id=>{const it=ITEMS.find(x=>x.id===id);if(it)a+=it.atk;});return a;}
+
+function updateStats(){
+  const lv=getLv();
+  document.getElementById('disp-lv').textContent=lv.lv;
+  document.getElementById('disp-lvname').textContent=lv.name;
+  document.getElementById('disp-gold').textContent=Math.round(G.gold);
+  document.getElementById('lv-badge').textContent='Lv'+lv.lv+' '+lv.name.slice(0,4);
+  const cur=lv.xp,next=getNextXp();
+  const pct=lv.lv===10?100:Math.min(100,Math.round((G.xp-cur)/(next-cur)*100));
+  document.getElementById('xp-bar').style.width=pct+'%';
+  document.getElementById('disp-xp').textContent='EXP '+Math.round(G.xp)+' / '+next;
+}
+
+function showTab(tab){
+  ['post','dungeon','shop'].forEach(t=>{
+    document.getElementById('view-'+t).className='screen'+(t===tab?' active':'');
+    document.getElementById('tab-'+t).className='nav-btn'+(t===tab?' active':'');
+  });
+  if(tab==='dungeon')renderDungeon();
+  if(tab==='shop')renderShop();
+}
+
+function showPhase(p){
+  ['input','loading','result'].forEach(x=>{
+    const el=document.getElementById('phase-'+x);
+    if(el)el.style.display=x===p?'block':'none';
+  });
+}
+
+document.getElementById('post-input').oninput=function(){
+  document.getElementById('char-count').textContent=this.value.length+'文字';
+};
+
+async function submitPost(){
+  const text=document.getElementById('post-input').value.trim();
+  if(!text){alert('何か書いてね！');return;}
+  showPhase('loading');
+  const char=CHARS[Math.floor(Math.random()*CHARS.length)];
+  const genType=GEN_TYPES[Math.floor(Math.random()*GEN_TYPES.length)];
+  document.getElementById('loading-icon').textContent=char.icon;
+  const msgs=['賢者が分析中...','羊皮紙に記録中...','笑いの結晶を探索中...','伝説を紡ぎ中...','魔力を変換中...'];
+  let mi=0;
+  const lt=setInterval(()=>{document.getElementById('loading-txt').textContent=msgs[mi++%msgs.length];},900);
+
+  let scores={e:55,s:55,i:55,f:55};
+  let comment='';
+  let generated={type:genType,name:'',desc:'',stats:[]};
+  const typeLabel={item:'アイテム',monster:'モンスター',title:'二つ名',card:'冒険者カード'}[genType];
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1000,
+        messages:[{role:'user',content:`あなたはRPGゲームの評価キャラクター「${char.name}」です。
+性格・口調：${char.style}
+
+ユーザーの日常エピソード：「${text}」
+
+このエピソードをRPG世界観で評価し、以下のJSON形式のみで返してください（他のテキスト不要、マークダウン不要）：
+{
+  "empathy": 共感度（0-100の整数）,
+  "surprise": 意外性（0-100の整数）,
+  "imagery": 情景性（0-100の整数）,
+  "funny": 面白さ（0-100の整数）,
+  "comment": "${char.name}らしい辛口ユーモアコメント（50文字以内、キャラになりきって、上から目線や皮肉を交えて）",
+  "gen_name": "このエピソードから生まれた${typeLabel}の名前（ユニークで面白い名前、10文字以内）",
+  "gen_desc": "説明・効果（エピソードを反映したユーモラスな文章、45文字以内）",
+  "gen_stat1": "ステータス1（ユニークで面白い効果、例：うっかり力+42）",
+  "gen_stat2": "ステータス2（例：恥ずかしさ耐性-30%）"
+}`}]
+      })
+    });
+    const data=await res.json();
+    const raw=data.content[0].text.replace(/```json|```/g,'').trim();
+    const p=JSON.parse(raw);
+    scores={
+      e:Math.min(100,Math.max(0,Math.round(p.empathy||55))),
+      s:Math.min(100,Math.max(0,Math.round(p.surprise||55))),
+      i:Math.min(100,Math.max(0,Math.round(p.imagery||55))),
+      f:Math.min(100,Math.max(0,Math.round(p.funny||55)))
+    };
+    comment=p.comment||'ふむ、なかなかだが物足りないのう。';
+    generated={type:genType,name:p.gen_name||'謎の遺物',desc:p.gen_desc||'不思議な力を秘めている',stats:[p.gen_stat1||'うっかり力 +1',p.gen_stat2||'運 +1']};
+  }catch(e){
+    const fb={item:{name:'失念の結晶',desc:'どこかで忘れてきた大切なものが宿る'},monster:{name:'スルースライム',desc:'全てをスルーする最強の防御を持つ'},title:{name:'うっかり師',desc:'天然の才能が光る由緒ある称号'},card:{name:'日常の語り部',desc:'あるあるを武器にする謎の冒険者'}}[genType];
+    generated={type:genType,name:fb.name,desc:fb.desc,stats:['共感力 +15','うっかり度 +99']};
+    comment='…まあ、悪くはないが。次はもっとやれ。';
+  }
+
+  clearInterval(lt);
+  const total=Math.round((scores.e+scores.s+scores.i+scores.f)/4);
+  const xp=Math.round(total*0.9+15);
+  const gold=Math.round(total*0.6+8);
+  G.xp+=xp;G.gold+=gold;
+  G.history.unshift({text,total,type:generated.type,name:generated.name,date:new Date().toLocaleDateString('ja-JP')});
+  if(G.history.length>30)G.history.pop();
+  save();updateStats();
+
+  document.getElementById('char-icon').textContent=char.icon;
+  document.getElementById('char-badge').textContent=char.name;
+  document.getElementById('char-comment').textContent=comment;
+  document.getElementById('total-score').textContent=total;
+  document.getElementById('score-rank').textContent=total>=90?'🔥 伝説級！':total>=75?'✨ 優秀な出来事':total>=60?'👍 なかなかよい':'💪 修行が必要じゃ';
+  document.getElementById('r-xp').textContent='+'+xp;
+  document.getElementById('r-gold').textContent='+'+gold;
+
+  setTimeout(()=>{
+    [['e',scores.e],['s',scores.s],['i',scores.i],['f',scores.f]].forEach(([k,v])=>{
+      document.getElementById('bar-'+k).style.width=v+'%';
+      document.getElementById('num-'+k).textContent=v;
+    });
+  },300);
+
+  const typeCls={item:'type-item',monster:'type-monster',title:'type-title',card:'type-card'}[generated.type];
+  const typeEmoji={item:'🗡️',monster:'👹',title:'📜',card:'🃏'}[generated.type];
+  document.getElementById('gen-type-badge').className='card-type-badge '+typeCls;
+  document.getElementById('gen-type-badge').textContent=typeEmoji+' '+typeLabel;
+  document.getElementById('gen-name').textContent=generated.name;
+  document.getElementById('gen-desc').textContent=generated.desc;
+  document.getElementById('gen-stats').innerHTML=generated.stats.map(s=>'<span class="stat-pill">'+s+'</span>').join('');
+
+  showPhase('result');
+}
+
+function saveCard(){
+  const name=document.getElementById('gen-name').textContent;
+  const desc=document.getElementById('gen-desc').textContent;
+  const typeTxt=document.getElementById('gen-type-badge').textContent;
+  const total=document.getElementById('total-score').textContent;
+  const stats=Array.from(document.getElementById('gen-stats').children).map(el=>el.textContent);
+  const comment=document.getElementById('char-comment').textContent;
+
+  const canvas=document.createElement('canvas');
+  canvas.width=640;canvas.height=480;
+  const ctx=canvas.getContext('2d');
+
+  ctx.fillStyle='#faf6ee';ctx.fillRect(0,0,640,480);
+  ctx.strokeStyle='#8b4513';ctx.lineWidth=8;ctx.strokeRect(8,8,624,464);
+  ctx.strokeStyle='#c8a878';ctx.lineWidth=2;ctx.strokeRect(18,18,604,444);
+  ctx.strokeStyle='#d4b896';ctx.lineWidth=1;ctx.strokeRect(24,24,592,432);
+
+  ctx.fillStyle='#8b4513';ctx.font='bold 13px serif';ctx.textAlign='center';ctx.fillText(typeTxt,320,52);
+  ctx.fillStyle='#2c1f0e';ctx.font='bold 32px serif';ctx.fillText(name,320,100);
+
+  ctx.fillStyle='#d4b896';ctx.fillRect(60,114,520,1);
+
+  ctx.fillStyle='#6b4c2a';ctx.font='14px serif';
+  const descWords=desc.match(/.{1,26}/g)||[desc];
+  descWords.slice(0,3).forEach((w,i)=>ctx.fillText(w,320,140+i*22));
+
+  ctx.fillStyle='#d4b896';ctx.fillRect(60,200,520,1);
+
+  ctx.fillStyle='#a08050';ctx.font='12px serif';ctx.fillText('総合スコア',320,225);
+  ctx.fillStyle='#2c1f0e';ctx.font='bold 56px serif';ctx.fillText(total,320,290);
+
+  ctx.fillStyle='#f0e8d8';ctx.fillRect(60,310,520,60);
+  ctx.strokeStyle='#c8a878';ctx.lineWidth=1;ctx.strokeRect(60,310,520,60);
+  ctx.fillStyle='#6b4c2a';ctx.font='italic 12px serif';
+  const cWords=comment.match(/.{1,30}/g)||[comment];
+  cWords.slice(0,2).forEach((w,i)=>ctx.fillText(w,320,336+i*18));
+
+  ctx.fillStyle='#f0e8d8';
+  stats.forEach((s,i)=>{
+    const x=i===0?160:480;
+    ctx.fillRect(x-90,385,180,28);
+    ctx.strokeStyle='#c8a878';ctx.lineWidth=1;ctx.strokeRect(x-90,385,180,28);
+    ctx.fillStyle='#8b4513';ctx.font='bold 11px serif';ctx.fillText(s,x,403);
+  });
+
+  ctx.fillStyle='#c8a878';ctx.font='11px serif';ctx.fillText('クスッとクエスト',320,456);
+
+  const a=document.createElement('a');
+  a.download='kusutto-card-'+Date.now()+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+}
+
+function resetPost(){
+  showPhase('input');
+  document.getElementById('post-input').value='';
+  document.getElementById('char-count').textContent='0文字';
+}
+
+function renderDungeon(){
+  const lv=getLv().lv;
+  const avail=ENEMIES.slice(0,Math.min(lv,ENEMIES.length));
+  document.getElementById('enemy-list').innerHTML=avail.map((e,i)=>`
+    <div class="dungeon-card">
+      <div class="enemy-face">${e.face}</div>
+      <div class="enemy-info">
+        <div class="enemy-name">${e.name}</div>
+        <div style="font-size:10px;color:#a08050;margin-top:2px;">${e.desc}</div>
+        <div class="enemy-hp-track"><div class="enemy-hp-bar" id="ehp-${i}" style="width:100%;"></div></div>
+      </div>
+      <span style="font-size:11px;color:#8b4513;font-weight:700;white-space:nowrap;">HP ${e.hp}</span>
+    </div>
+  `).join('');
+  document.getElementById('battle-btn').style.display='block';
+  document.getElementById('battle-log').style.display='none';
+  document.getElementById('again-btn').style.display='none';
+}
+
+function startBattle(){
+  const lv=getLv().lv;
+  const atk=getAtk();
+  const avail=ENEMIES.slice(0,Math.min(lv,ENEMIES.length));
+  let log='';let xpG=0,goldG=0;
+  document.getElementById('battle-btn').style.display='none';
+  avail.forEach((e,i)=>{
+    let hp=e.hp,turns=0;
+    while(hp>0&&turns<30){hp=Math.max(0,hp-Math.round(atk*(0.7+Math.random()*0.6)));turns++;}
+    const won=hp<=0;
+    setTimeout(()=>{document.getElementById('ehp-'+i).style.width=(Math.max(0,hp)/e.hp*100)+'%';},i*200);
+    if(won){xpG+=Math.round(e.hp*0.4);goldG+=Math.round(e.hp*0.2);log+=`✅ ${e.name}を討伐！\n`;}
+    else{log+=`😓 ${e.name}には勝てなかった…\n`;}
+  });
+  if(xpG>0){
+    G.xp+=xpG;G.gold+=goldG;
+    log+=`\n⭐ EXP +${xpG}　💰 +${goldG}G 獲得`;
+    save();updateStats();
+  } else {
+    log+='\nレベルアップして再挑戦しよう！';
+  }
+  document.getElementById('battle-log').textContent=log;
+  document.getElementById('battle-log').style.display='block';
+  document.getElementById('again-btn').style.display='block';
+}
+
+function resetBattle(){renderDungeon();}
+
+function renderShop(){
+  document.getElementById('shop-list').innerHTML=ITEMS.map(it=>`
+    <div class="item-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:24px;">${it.icon}</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#2c1f0e;">${it.name}</div>
+          <div style="font-size:10px;color:#a08050;">${it.desc}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;font-weight:700;color:#633806;margin-bottom:4px;">💰 ${it.price}G</div>
+        ${G.items.includes(it.id)
+          ?'<button class="buy-btn owned" disabled>所持中</button>'
+          :`<button class="buy-btn" onclick="buyItem('${it.id}',${it.price})">購入</button>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+function buyItem(id,price){
+  if(G.gold<price){alert('ゴールドが足りぬ！もっと投稿して稼ごう。');return;}
+  if(G.items.includes(id))return;
+  G.gold-=price;G.items.push(id);save();updateStats();renderShop();
+}
+
+load();updateStats();showPhase('input');
+</script>
+</body>
+</html>
